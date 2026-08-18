@@ -26,6 +26,7 @@
     let isPaused = false;
     let currentUtterance = null;
     let currentHighlightMark = null;
+    let activeAudio = null;
     let playerEl = null;
     let bubbleEl = null;
 
@@ -61,11 +62,8 @@
         }
     }
 
-    if (synth) {
-        loadVoices();
-        if (synth.onvoiceschanged !== undefined) {
-            synth.onvoiceschanged = loadVoices;
-        }
+    if (synth && synth.onvoiceschanged !== undefined) {
+        synth.onvoiceschanged = loadVoices;
     }
 
     // Cria elementos da UI na página
@@ -93,8 +91,11 @@
         } else if (msg.action === 'SET_SPEED') {
             settings.rate = parseFloat(msg.rate || 1.0);
             if (isPlaying && !isPaused) {
-                synth.cancel();
-                playChunk(currentChunkIndex);
+                if (activeAudio) activeAudio.playbackRate = settings.rate;
+                else {
+                    synth.cancel();
+                    playChunk(currentChunkIndex);
+                }
             }
             sendResponse({ success: true });
         } else if (msg.action === 'GET_STATUS') {
@@ -110,14 +111,14 @@
     });
 
     // ==========================================
-    // MOTOR DE LEITURA
+    // CONTROLE DE FLUXO E REPRODUÇÃO HÍBRIDA
     // ==========================================
     function readArticleContent() {
         let text = '';
         if (typeof extractMainContentText === 'function') {
             text = extractMainContentText(document);
         } else {
-            text = document.body.innerText;
+            text = document.body ? document.body.innerText : '';
         }
 
         if (!text || text.trim().length < 20) {
@@ -148,7 +149,7 @@
         playChunk(0);
     }
 
-    function playChunk(index) {
+    async function playChunk(index) {
         if (!isPlaying || index >= chunks.length) {
             stopReading();
             return;
@@ -158,6 +159,61 @@
         updatePlayerUI();
         highlightCurrentText(chunks[index]);
 
+        // Verifica se o motor configurado é a OpenAI TTS
+        if (typeof shouldUseOpenAI === 'function' && shouldUseOpenAI(settings)) {
+            try {
+                await playChunkOpenAI(index);
+                return;
+            } catch (err) {
+                console.warn('Falha no motor OpenAI TTS, alternando automaticamente para motor nativo:', err);
+            }
+        }
+
+        // Motor padrão: Web Speech API (Navegador)
+        playChunkBrowser(index);
+    }
+
+    async function playChunkOpenAI(index) {
+        if (activeAudio) {
+            activeAudio.pause();
+            activeAudio = null;
+        }
+
+        const blob = await fetchOpenAIAudioBlob(chunks[index], settings);
+        if (!isPlaying || currentChunkIndex !== index) return;
+
+        const audioUrl = URL.createObjectURL(blob);
+        const audio = new Audio(audioUrl);
+        activeAudio = audio;
+        audio.playbackRate = settings.rate || 1.0;
+
+        // Karaokê proporcional durante a reprodução do áudio da OpenAI
+        audio.ontimeupdate = () => {
+            if (audio.duration && isPlaying && !isPaused) {
+                const ratio = audio.currentTime / audio.duration;
+                const charIdx = Math.min(chunks[index].length - 1, Math.floor(ratio * chunks[index].length));
+                highlightWord(chunks[index], charIdx);
+            }
+        };
+
+        audio.onended = () => {
+            URL.revokeObjectURL(audioUrl);
+            activeAudio = null;
+            if (isPlaying && !isPaused) {
+                playChunk(index + 1);
+            }
+        };
+
+        audio.onerror = () => {
+            URL.revokeObjectURL(audioUrl);
+            activeAudio = null;
+            playChunkBrowser(index);
+        };
+
+        await audio.play();
+    }
+
+    function playChunkBrowser(index) {
         if (!selectedVoice) {
             loadVoices();
         }
@@ -201,11 +257,13 @@
             }
         };
 
-        if (synth.paused) {
+        if (synth && synth.paused) {
             synth.resume();
         }
 
-        synth.speak(currentUtterance);
+        if (synth) {
+            synth.speak(currentUtterance);
+        }
     }
 
     function toggleReading() {
@@ -220,19 +278,34 @@
 
     function pauseReading() {
         if (!isPlaying) return;
-        synth.pause();
+        if (activeAudio) {
+            activeAudio.pause();
+        }
+        if (synth) {
+            synth.pause();
+        }
         isPaused = true;
         updatePlayerUI();
     }
 
     function resumeReading() {
         if (!isPlaying) return;
-        synth.resume();
+        if (activeAudio) {
+            activeAudio.play().catch(() => {});
+        }
+        if (synth && synth.paused) {
+            synth.resume();
+        }
         isPaused = false;
         updatePlayerUI();
     }
 
     function stopReading() {
+        if (activeAudio) {
+            activeAudio.pause();
+            activeAudio.src = '';
+            activeAudio = null;
+        }
         if (synth) synth.cancel();
         isPlaying = false;
         isPaused = false;
@@ -244,14 +317,22 @@
 
     function prevChunk() {
         if (currentChunkIndex > 0) {
-            synth.cancel();
+            if (activeAudio) {
+                activeAudio.pause();
+                activeAudio = null;
+            }
+            if (synth) synth.cancel();
             playChunk(currentChunkIndex - 1);
         }
     }
 
     function nextChunk() {
         if (currentChunkIndex < chunks.length - 1) {
-            synth.cancel();
+            if (activeAudio) {
+                activeAudio.pause();
+                activeAudio = null;
+            }
+            if (synth) synth.cancel();
             playChunk(currentChunkIndex + 1);
         } else {
             stopReading();

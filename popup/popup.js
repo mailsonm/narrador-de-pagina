@@ -8,8 +8,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const speedSelect = document.getElementById('speed-select');
     const statusText = document.getElementById('status-text');
     const optionsBtn = document.getElementById('btn-open-options');
+    const engineBadge = document.getElementById('popup-engine-badge');
     const playText = playBtn.querySelector('.action-text');
     const playIcon = playBtn.querySelector('.action-icon');
+
+    // Carrega badge do motor ativo
+    chrome.storage.sync.get(['narradorSettings'], (res) => {
+        const s = res.narradorSettings || {};
+        if (s.ttsEngine === 'openai' && s.openaiApiKey) {
+            const voice = (s.openaiVoice || 'Nova').charAt(0).toUpperCase() + (s.openaiVoice || 'Nova').slice(1);
+            engineBadge.textContent = `✨ IA (${voice})`;
+            engineBadge.className = 'engine-pill ai';
+        } else {
+            engineBadge.textContent = '🌐 Gratuito';
+            engineBadge.className = 'engine-pill free';
+        }
+    });
 
     // Abre opções
     optionsBtn.addEventListener('click', () => {

@@ -11,17 +11,86 @@
             <div class="logo">
                 <span class="icon">🎙️</span>
                 <div>
-                    <h1>Narrador de Página</h1>
-                    <p class="subtitle">Personalize a sua experiência de leitura de tela e conversão de texto em fala</p>
+                    <h1>Narrador de Página (v2.0 Híbrido)</h1>
+                    <p class="subtitle">Personalize a sua experiência de leitura de tela com vozes gratuitas ou IA de estúdio</p>
                 </div>
             </div>
         </header>
 
         <main class="options-content">
             <form id="options-form">
-                <!-- Seção 1: Voz e Idioma -->
-                <section class="card">
-                    <h2>🗣️ Voz & Idioma</h2>
+                <!-- Seção 0: Seleção de Motor (Híbrido) -->
+                <section class="card highlight-card">
+                    <h2>⚙️ Motor de Síntese de Voz (TTS)</h2>
+                    <div class="engine-options">
+                        <label class="engine-card active" id="card-engine-browser">
+                            <input type="radio" name="ttsEngine" value="browser" checked>
+                            <div class="engine-card-body">
+                                <span class="engine-badge free">100% Gratuito</span>
+                                <strong>🥇 Vozes Neurais do Navegador</strong>
+                                <p>Sem chaves de API, sem custos. Utiliza as vozes neurais instaladas no seu sistema operacional (Google, Microsoft, Apple).</p>
+                            </div>
+                        </label>
+
+                        <label class="engine-card" id="card-engine-openai">
+                            <input type="radio" name="ttsEngine" value="openai">
+                            <div class="engine-card-body">
+                                <span class="engine-badge ai">Qualidade de Podcast</span>
+                                <strong>🎙️ OpenAI TTS (IA de Estúdio - BYOK)</strong>
+                                <p>Vozes humanas ultrarrealistas (Nova, Alloy, Echo). Requer sua própria chave privada da OpenAI.</p>
+                            </div>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- Seção 1: Configurações da OpenAI (Exibido se motor OpenAI ativo) -->
+                <section class="card" id="section-openai-settings">
+                    <h2>🤖 Configurações da OpenAI TTS</h2>
+                    
+                    <div class="form-group">
+                        <label for="openai-key">Chave de API OpenAI (API Key):</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="openai-key" placeholder="sk-proj-..." class="text-input">
+                            <button type="button" id="btn-toggle-key-visibility" class="btn-icon" title="Exibir/Ocultar chave">👁️</button>
+                        </div>
+                        <p class="help-text">Sua chave é armazenada com segurança no seu navegador via <code>chrome.storage.sync</code>.</p>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="openai-voice">Voz de Estúdio:</label>
+                            <select id="openai-voice">
+                                <option value="nova" selected>Nova (Feminina Natural - Recomendada)</option>
+                                <option value="shimmer">Shimmer (Feminina Clara)</option>
+                                <option value="alloy">Alloy (Neutra Equilibrada)</option>
+                                <option value="echo">Echo (Masculina Suave)</option>
+                                <option value="onyx">Onyx (Masculina Profunda)</option>
+                                <option value="fable">Fable (Narrativa Expressiva)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group half">
+                            <label for="openai-model">Modelo de IA:</label>
+                            <select id="openai-model">
+                                <option value="tts-1" selected>tts-1 (Padrão - Baixa Latência)</option>
+                                <option value="tts-1-hd">tts-1-hd (Alta Definição / Estúdio)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="test-voice-area">
+                        <button type="button" id="btn-test-openai" class="secondary-btn">🔊 Testar Voz da IA</button>
+                        <span id="test-openai-status" class="test-status"></span>
+                    </div>
+
+                    <div class="info-callout">
+                        💡 <strong>Dica de Economia:</strong> O modelo <code>tts-1</code> custa apenas ~$0,015 a cada 1.000 caracteres (~$0,05 por artigo completo). Se a chave expirar ou ficar sem créditos, a extensão faz fallback automático para o Modo Gratuito!
+                    </div>
+                </section>
+
+                <!-- Seção 2: Configurações do Navegador (Voz & Idioma) -->
+                <section class="card" id="section-browser-settings">
+                    <h2>🗣️ Voz & Idioma (Modo Navegador)</h2>
                     
                     <div class="form-group">
                         <label for="lang-select">Idioma Principal:</label>
@@ -34,7 +103,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="voice-select">Voz Específica (Navegador):</label>
+                        <label for="voice-select">Voz do Sistema / Navegador:</label>
                         <select id="voice-select">
                             <option value="">Automático (Melhor Voz Neural / Natural)</option>
                         </select>
@@ -54,7 +123,7 @@
                     </div>
                 </section>
 
-                <!-- Seção 2: Recursos Visuais e Interação -->
+                <!-- Seção 3: Recursos Visuais e Interação -->
                 <section class="card">
                     <h2>🎛️ Recursos Visuais & Interface</h2>
 
@@ -65,7 +134,7 @@
                         </label>
                         <div class="toggle-info">
                             <strong>Destaque em Tempo Real (Efeito Karaokê)</strong>
-                            <p>Realça visualmente a frase que está sendo narrada no momento e rola a tela suavemente.</p>
+                            <p>Realça visualmente a palavra e frase narradas em tempo real com rolagem suave.</p>
                         </div>
                     </div>
 
@@ -92,7 +161,7 @@
                     </div>
                 </section>
 
-                <!-- Seção 3: Atalhos de Teclado -->
+                <!-- Seção 4: Atalhos de Teclado -->
                 <section class="card">
                     <h2>⌨️ Atalhos de Teclado</h2>
                     <table class="shortcuts-table">
@@ -105,7 +174,23 @@
                             <td><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd></td>
                         </tr>
                     </table>
-                    <p class="help-text">Você pode personalizar estes atalhos em <code>chrome://extensions/shortcuts</code>.</p>
+                    <p class="help-text">Personalize em <code>chrome://extensions/shortcuts</code>.</p>
+                </section>
+
+                <!-- Seção 5: Guia de APIs de Terceiros -->
+                <section class="card info-card">
+                    <h2>📖 Onde Obter Chaves de API Gratuitas ou de Baixo Custo</h2>
+                    <ul class="api-links-list">
+                        <li>
+                            <strong>OpenAI Platform:</strong> <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">platform.openai.com/api-keys</a> (Vozes de podcast).
+                        </li>
+                        <li>
+                            <strong>Google Cloud TTS:</strong> 1 milhão de caracteres grátis/mês (<a href="https://cloud.google.com/text-to-speech" target="_blank" rel="noopener noreferrer">Acessar</a>).
+                        </li>
+                        <li>
+                            <strong>Microsoft Azure Speech:</strong> 500 mil caracteres grátis/mês (<a href="https://azure.microsoft.com/products/ai-services/ai-speech" target="_blank" rel="noopener noreferrer">Acessar</a>).
+                        </li>
+                    </ul>
                 </section>
 
                 <div class="actions-bar">
@@ -116,6 +201,7 @@
         </main>
     </div>
 
+    <script src="../lib/openai-tts.js"></script>
     <script src="options.js"></script>
 </body>
 </html>

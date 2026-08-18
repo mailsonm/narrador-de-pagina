@@ -90,3 +90,26 @@ test('4. Máquina de Estados do Player (PlayerStateMachine)', (t) => {
     assert.strictEqual(player.getState(), 'STOPPED', 'Estado deve ser STOPPED');
     assert.strictEqual(player.getCurrentIndex(), 0, 'Índice deve reiniciar após stop');
 });
+
+test('5. Validação de Payload e Decisão do Motor OpenAI TTS (lib/openai-tts.js)', (t) => {
+    const { buildOpenAIPayload, shouldUseOpenAI } = require('../lib/openai-tts.js');
+
+    // Teste de decisão de motor
+    assert.strictEqual(shouldUseOpenAI({ ttsEngine: 'openai', openaiApiKey: 'sk-proj-123456789' }), true, 'Deve usar OpenAI quando engine for openai e chave válida');
+    assert.strictEqual(shouldUseOpenAI({ ttsEngine: 'browser', openaiApiKey: 'sk-proj-123456789' }), false, 'Deve usar browser quando engine for browser');
+    assert.strictEqual(shouldUseOpenAI({ ttsEngine: 'openai', openaiApiKey: '' }), false, 'Deve fazer fallback quando chave vazia');
+
+    // Teste de payload
+    const payload = buildOpenAIPayload('Olá, mundo!', {
+        openaiModel: 'tts-1-hd',
+        openaiVoice: 'nova',
+        rate: 1.25
+    });
+
+    assert.strictEqual(payload.input, 'Olá, mundo!');
+    assert.strictEqual(payload.model, 'tts-1-hd');
+    assert.strictEqual(payload.voice, 'nova');
+    assert.strictEqual(payload.speed, 1.25);
+    assert.strictEqual(payload.response_format, 'mp3');
+});
+

@@ -3,7 +3,7 @@
   "name": "Narrador de Página - Leitor de Tela com Voz Natural",
   "short_name": "Narrador de Página",
   "description": "Leitor de tela inteligente para ouvir qualquer artigo ou texto selecionado na web com vozes neurais e destaque em tempo real.",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
@@ -27,6 +27,7 @@
       "js": [
         "lib/text-extractor.js",
         "lib/sentence-splitter.js",
+        "lib/openai-tts.js",
         "content.js"
       ],
       "css": ["content.css"],
@@ -40,6 +41,9 @@
     "storage",
     "contextMenus",
     "tts"
+  ],
+  "host_permissions": [
+    "https://api.openai.com/*"
   ],
   "commands": {
     "toggle-reading": {
