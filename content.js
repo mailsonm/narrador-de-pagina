@@ -132,7 +132,7 @@
         if (!text || !text.trim()) return;
 
         if (typeof splitTextIntoSentences === 'function') {
-            chunks = splitTextIntoSentences(text, 180);
+            chunks = splitTextIntoSentences(text, 100);
         } else {
             chunks = text.split(/[.!?;\n]+/).map(s => s.trim()).filter(Boolean);
         }
