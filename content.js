@@ -251,26 +251,34 @@
         }
     }
 
-    // ==========================================
-    // DESTAQUE VISUAL (KARAOKÊ)
-    // ==========================================
     function highlightCurrentText(sentence) {
         if (!settings.autoHighlight) return;
         removeHighlight();
 
-        if (!sentence || sentence.length < 5) return;
+        if (!sentence || sentence.length < 3) return;
 
-        // Procura nó de texto compatível
+        // Limpa seleções manuais antigas para não sobrepor o karaokê
+        try {
+            const sel = window.getSelection();
+            if (sel && sel.rangeCount > 0) {
+                sel.removeAllRanges();
+            }
+        } catch (e) {}
+
+        const cleanSentence = sentence.replace(/\s+/g, ' ').trim().toLowerCase();
+        const snippet = cleanSentence.substring(0, Math.min(25, cleanSentence.length));
+
+        // Procura nó de texto compatível no DOM
         const walker = document.createTreeWalker(
             document.body,
             NodeFilter.SHOW_TEXT,
             {
                 acceptNode: function (node) {
-                    if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+                    if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
                     if (node.parentElement && (
                         node.parentElement.closest('#narrador-floating-player') ||
                         node.parentElement.closest('#narrador-selection-bubble') ||
-                        ['SCRIPT', 'STYLE', 'NAV'].includes(node.parentElement.tagName)
+                        ['SCRIPT', 'STYLE', 'NOSCRIPT'].includes(node.parentElement.tagName)
                     )) {
                         return NodeFilter.FILTER_REJECT;
                     }
@@ -279,21 +287,20 @@
             }
         );
 
-        const searchSnippet = sentence.substring(0, Math.min(30, sentence.length)).trim();
-        let targetNode = null;
+        let targetElement = null;
 
         while (walker.nextNode()) {
-            if (walker.currentNode.nodeValue.includes(searchSnippet)) {
-                targetNode = walker.currentNode;
+            const textContent = walker.currentNode.nodeValue.replace(/\s+/g, ' ').trim().toLowerCase();
+            if (textContent.includes(snippet) || (textContent.length > 5 && cleanSentence.includes(textContent))) {
+                targetElement = walker.currentNode.parentElement;
                 break;
             }
         }
 
-        if (targetNode && targetNode.parentElement) {
-            const parent = targetNode.parentElement;
-            parent.classList.add('narrador-highlight-container');
-            currentHighlightMark = parent;
-            parent.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (targetElement) {
+            targetElement.classList.add('narrador-highlight-container');
+            currentHighlightMark = targetElement;
+            targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }
 
@@ -302,6 +309,10 @@
             currentHighlightMark.classList.remove('narrador-highlight-container');
             currentHighlightMark = null;
         }
+        // Remove qualquer destaque órfão
+        document.querySelectorAll('.narrador-highlight-container').forEach(el => {
+            el.classList.remove('narrador-highlight-container');
+        });
     }
 
     // ==========================================
