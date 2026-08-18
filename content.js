@@ -26,6 +26,8 @@
     let isPaused = false;
     let currentUtterance = null;
     let currentHighlightMark = null;
+    let playerEl = null;
+    let bubbleEl = null;
 
     // Carrega preferências
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
@@ -105,7 +107,6 @@
                 rate: settings.rate
             });
         }
-        return true;
     });
 
     // ==========================================
@@ -296,8 +297,6 @@
     // ==========================================
     // PLAYER FLUTUANTE (FLOATING PLAYER UI)
     // ==========================================
-    let playerEl = null;
-
     function createFloatingPlayer() {
         if (document.getElementById('narrador-floating-player')) return;
 
@@ -404,8 +403,6 @@
     // ==========================================
     // BALÃO FLUTUANTE DE SELEÇÃO DE TEXTO
     // ==========================================
-    let bubbleEl = null;
-
     function createSelectionBubble() {
         bubbleEl = document.createElement('button');
         bubbleEl.id = 'narrador-selection-bubble';
