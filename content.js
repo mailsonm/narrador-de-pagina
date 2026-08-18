@@ -166,7 +166,13 @@
         currentUtterance.lang = settings.lang || 'pt-BR';
         currentUtterance.rate = settings.rate || 1.0;
         currentUtterance.pitch = settings.pitch || 1.0;
-        if (selectedVoice) currentUtterance.voice = selectedVoice;
+        if (selectedVoice) {
+            try {
+                currentUtterance.voice = selectedVoice;
+            } catch (err) {
+                console.warn('Narrador voice assign error:', err);
+            }
+        }
 
         // Proteção contra Garbage Collector do Chrome
         window._narradorUtterance = currentUtterance;
@@ -178,7 +184,11 @@
         };
 
         currentUtterance.onerror = (e) => {
-            console.warn('Narrador chunk error:', e);
+            // 'interrupted' e 'canceled' são eventos normais disparados quando o áudio é pausado/parado ou avançado
+            if (e.error === 'interrupted' || e.error === 'canceled') {
+                return;
+            }
+            console.warn('Narrador chunk speech error:', e.error || e);
             if (isPlaying && !isPaused) {
                 playChunk(index + 1);
             }
