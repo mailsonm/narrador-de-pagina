@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Configurações - Narrador de Página</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+<body>
+    <div class="options-layout">
+        <header class="options-header">
+            <div class="logo">
+                <span class="icon">🎙️</span>
+                <div>
+                    <h1>Narrador de Página</h1>
+                    <p class="subtitle">Personalize a sua experiência de leitura de tela e conversão de texto em fala</p>
+                </div>
+            </div>
+        </header>
+
+        <main class="options-content">
+            <form id="options-form">
+                <!-- Seção 1: Voz e Idioma -->
+                <section class="card">
+                    <h2>🗣️ Voz & Idioma</h2>
+                    
+                    <div class="form-group">
+                        <label for="lang-select">Idioma Principal:</label>
+                        <select id="lang-select">
+                            <option value="pt-BR" selected>Português (Brasil) - pt-BR</option>
+                            <option value="pt-PT">Português (Portugal) - pt-PT</option>
+                            <option value="en-US">Inglês (EUA) - en-US</option>
+                            <option value="es-ES">Espanhol - es-ES</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="voice-select">Voz Específica (Navegador):</label>
+                        <select id="voice-select">
+                            <option value="">Automático (Melhor Voz Neural / Natural)</option>
+                        </select>
+                        <p class="help-text">Dica: Vozes que contêm "Natural", "Online" ou "Google" oferecem maior realismo.</p>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="rate-input">Velocidade Padrão: <span id="rate-val">1.0x</span></label>
+                            <input type="range" id="rate-input" min="0.5" max="2.5" step="0.1" value="1.0">
+                        </div>
+
+                        <div class="form-group half">
+                            <label for="pitch-input">Tom de Voz (Pitch): <span id="pitch-val">1.0</span></label>
+                            <input type="range" id="pitch-input" min="0.5" max="1.5" step="0.1" value="1.0">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Seção 2: Recursos Visuais e Interação -->
+                <section class="card">
+                    <h2>🎛️ Recursos Visuais & Interface</h2>
+
+                    <div class="toggle-group">
+                        <label class="switch">
+                            <input type="checkbox" id="auto-highlight" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <div class="toggle-info">
+                            <strong>Destaque em Tempo Real (Efeito Karaokê)</strong>
+                            <p>Realça visualmente a frase que está sendo narrada no momento e rola a tela suavemente.</p>
+                        </div>
+                    </div>
+
+                    <div class="toggle-group">
+                        <label class="switch">
+                            <input type="checkbox" id="floating-player" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <div class="toggle-info">
+                            <strong>Mini Player Flutuante na Página</strong>
+                            <p>Exibe o widget de controle (Play/Pause/Avançar/Velocidade) no canto inferior da página.</p>
+                        </div>
+                    </div>
+
+                    <div class="toggle-group">
+                        <label class="switch">
+                            <input type="checkbox" id="selection-bubble" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <div class="toggle-info">
+                            <strong>Balão Rápido ao Selecionar Texto</strong>
+                            <p>Mostra o botão flutuante "🔊 Ouvir" automaticamente acima de qualquer texto selecionado com o mouse.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Seção 3: Atalhos de Teclado -->
+                <section class="card">
+                    <h2>⌨️ Atalhos de Teclado</h2>
+                    <table class="shortcuts-table">
+                        <tr>
+                            <td><strong>Iniciar / Pausar Leitura</strong></td>
+                            <td><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Parar Leitura</strong></td>
+                            <td><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd></td>
+                        </tr>
+                    </table>
+                    <p class="help-text">Você pode personalizar estes atalhos em <code>chrome://extensions/shortcuts</code>.</p>
+                </section>
+
+                <div class="actions-bar">
+                    <button type="submit" id="save-btn" class="save-button">💾 Salvar Preferências</button>
+                    <span id="save-status" class="save-status"></span>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <script src="options.js"></script>
+</body>
+</html>

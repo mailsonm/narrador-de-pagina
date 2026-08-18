@@ -1,0 +1,8 @@
+# Node & OS
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+generate_icons.js

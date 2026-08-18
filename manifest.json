@@ -1,0 +1,61 @@
+{
+  "manifest_version": 3,
+  "name": "Narrador de Página - Leitor de Tela com Voz Natural",
+  "short_name": "Narrador de Página",
+  "description": "Leitor de tela inteligente para ouvir qualquer artigo ou texto selecionado na web com vozes neurais e destaque em tempo real.",
+  "version": "1.0.0",
+  "default_locale": "pt_BR",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Narrador de Página (Alt+Shift+R)",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "lib/text-extractor.js",
+        "lib/sentence-splitter.js",
+        "content.js"
+      ],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_page": "options/options.html",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "contextMenus",
+    "tts"
+  ],
+  "commands": {
+    "toggle-reading": {
+      "suggested_key": {
+        "default": "Alt+Shift+R",
+        "mac": "Alt+Shift+R"
+      },
+      "description": "Iniciar / Pausar a leitura da página"
+    },
+    "stop-reading": {
+      "suggested_key": {
+        "default": "Alt+Shift+S",
+        "mac": "Alt+Shift+S"
+      },
+      "description": "Parar a leitura da página"
+    }
+  }
+}
