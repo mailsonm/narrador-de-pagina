@@ -4,7 +4,6 @@
   "short_name": "Narrador de Página",
   "description": "Leitor de tela inteligente para ouvir qualquer artigo ou texto selecionado na web com vozes neurais e destaque em tempo real.",
   "version": "1.0.0",
-  "default_locale": "pt_BR",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
