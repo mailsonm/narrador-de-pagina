@@ -51,17 +51,41 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!tabs || !tabs[0] || !tabs[0].id) return;
             const tabId = tabs[0].id;
 
-            chrome.tabs.sendMessage(tabId, { action: 'TOGGLE_READING' }, (res) => {
-                if (chrome.runtime.lastError || !res) {
-                    statusText.textContent = 'Iniciando leitura...';
-                    return;
-                }
-                if (res.isPlaying && !res.isPaused) {
-                    setPlayingState(true);
-                } else if (res.isPaused) {
-                    setPausedState();
+            function sendToggle() {
+                chrome.tabs.sendMessage(tabId, { action: 'TOGGLE_READING' }, (res) => {
+                    if (chrome.runtime.lastError || !res) {
+                        statusText.textContent = 'Iniciando leitura...';
+                        return;
+                    }
+                    if (res.isPlaying && !res.isPaused) {
+                        setPlayingState(true);
+                    } else if (res.isPaused) {
+                        setPausedState();
+                    } else {
+                        setIdleState();
+                    }
+                });
+            }
+
+            // Testa se a aba já responde; se não, injeta os scripts e tenta novamente
+            chrome.tabs.sendMessage(tabId, { action: 'GET_STATUS' }, (res) => {
+                if (chrome.runtime.lastError) {
+                    chrome.scripting.executeScript({
+                        target: { tabId },
+                        files: ['lib/text-extractor.js', 'lib/sentence-splitter.js', 'content.js']
+                    }).then(() => {
+                        chrome.scripting.insertCSS({
+                            target: { tabId },
+                            files: ['content.css']
+                        }).then(() => {
+                            setTimeout(sendToggle, 150);
+                        });
+                    }).catch(err => {
+                        console.warn('Falha ao injetar script:', err);
+                        sendToggle();
+                    });
                 } else {
-                    setIdleState();
+                    sendToggle();
                 }
             });
         });

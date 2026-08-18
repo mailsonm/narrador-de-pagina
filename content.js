@@ -157,11 +157,18 @@
         updatePlayerUI();
         highlightCurrentText(chunks[index]);
 
+        if (!selectedVoice) {
+            loadVoices();
+        }
+
         currentUtterance = new SpeechSynthesisUtterance(chunks[index]);
         currentUtterance.lang = settings.lang || 'pt-BR';
         currentUtterance.rate = settings.rate || 1.0;
         currentUtterance.pitch = settings.pitch || 1.0;
         if (selectedVoice) currentUtterance.voice = selectedVoice;
+
+        // Proteção contra Garbage Collector do Chrome
+        window._narradorUtterance = currentUtterance;
 
         currentUtterance.onend = () => {
             if (isPlaying && !isPaused) {
@@ -175,6 +182,10 @@
                 playChunk(index + 1);
             }
         };
+
+        if (synth.paused) {
+            synth.resume();
+        }
 
         synth.speak(currentUtterance);
     }
