@@ -159,6 +159,15 @@
     border-radius: 6px;
 }
 
+.narrador-karaoke-word-active {
+    background: #0284c7 !important;
+    color: #ffffff !important;
+    padding: 1px 4px !important;
+    border-radius: 3px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 0 6px rgba(2, 132, 199, 0.6) !important;
+}
+
 /* Linha de Botões de Controle */
 .narrador-buttons-row {
     display: flex;
@@ -274,5 +283,10 @@
     }
     .narrador-progress-track {
         background: #334155;
+    }
+    .narrador-karaoke-word-active {
+        background: #38bdf8 !important;
+        color: #0f172a !important;
+        box-shadow: 0 0 6px rgba(56, 189, 248, 0.7) !important;
     }
 }

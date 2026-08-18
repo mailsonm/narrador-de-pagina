@@ -177,6 +177,13 @@
         // Proteção contra Garbage Collector do Chrome
         window._narradorUtterance = currentUtterance;
 
+        // Destaque de Karaokê por Palavra em Tempo Real
+        currentUtterance.onboundary = (event) => {
+            if (event.name === 'word' && isPlaying && !isPaused) {
+                highlightWord(chunks[index], event.charIndex);
+            }
+        };
+
         currentUtterance.onend = () => {
             if (isPlaying && !isPaused) {
                 playChunk(index + 1);
@@ -302,6 +309,35 @@
             currentHighlightMark = targetElement;
             targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
+    }
+
+    function highlightWord(sentence, charIndex) {
+        if (!settings.autoHighlight || !sentence || charIndex === undefined) return;
+
+        // Extrai a palavra ativa sendo falada
+        const sub = sentence.substring(charIndex);
+        const match = sub.match(/^[^\s.,!?;:—\-\(\)\[\]"']+/);
+        const word = match ? match[0] : '';
+        if (!word) return;
+
+        // Atualiza a prévia visual do Karaokê em tempo real no Player Flutuante
+        if (playerEl) {
+            const chunkTextEl = playerEl.querySelector('#narrador-chunk-text');
+            if (chunkTextEl) {
+                const before = sentence.substring(0, charIndex);
+                const after = sentence.substring(charIndex + word.length);
+                chunkTextEl.innerHTML = `${escapeHtml(before)}<span class="narrador-karaoke-word-active">${escapeHtml(word)}</span>${escapeHtml(after)}`;
+            }
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
     }
 
     function removeHighlight() {
