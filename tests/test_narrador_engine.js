@@ -113,3 +113,38 @@ test('5. Validação de Payload e Decisão do Motor OpenAI TTS (lib/openai-tts.j
     assert.strictEqual(payload.response_format, 'mp3');
 });
 
+test('6. Proteção de Decimais, Versões, Domínios e Reticências (splitTextIntoSentences)', (t) => {
+    const akitaText = "Semana passada eu publiquei a rodada com Qwen 3.8, GLM 5.3, Gemini 3.7 e Grok 4.6 no meu benchmark v2: a prova em três fases que endurece um app Rails 8 de chat com LLM. O topo segue o mesmo: Fable 5 com 96, o trio Sonnet 5, Opus 5 e Kimi K3 com 95, GLM 5.3 sozinho com 94, e o pelotão dos 93 logo atrás. Acesse akitaonrails.com para mais detalhes... não perca!";
+
+    const sentences = splitTextIntoSentences(akitaText);
+
+    // Deve conter as frases completas sem quebrar nos pontos de 3.8, 5.3, 3.7, 4.6, akitaonrails.com ou ...
+    assert.strictEqual(sentences.length, 3, 'Deve segmentar em exatamente 3 sentenças completas');
+    assert.ok(sentences[0].includes('Qwen 3.8, GLM 5.3, Gemini 3.7 e Grok 4.6'), 'Não deve quebrar números decimais');
+    assert.ok(sentences[1].includes('GLM 5.3 sozinho com 94'), 'Não deve quebrar decimais na segunda frase');
+    assert.ok(sentences[2].includes('akitaonrails.com para mais detalhes... não perca!'), 'Deve preservar domínios e reticências');
+});
+
+test('7. Tokenização de Palavras com Offsets para Karaokê (getSentenceWords)', (t) => {
+    const { getSentenceWords } = require('../lib/sentence-splitter.js');
+    const sentence = "Olá, mundo! Teste de Karaokê 2.0.";
+
+    const words = getSentenceWords(sentence);
+
+    assert.strictEqual(words.length, 6, 'Deve extrair 6 tokens de palavras');
+    assert.strictEqual(words[0].word, 'Olá,');
+    assert.strictEqual(words[0].cleanWord, 'Olá');
+    assert.strictEqual(words[0].startChar, 0);
+    assert.strictEqual(words[0].endChar, 4);
+
+    assert.strictEqual(words[1].word, 'mundo!');
+    assert.strictEqual(words[1].cleanWord, 'mundo');
+    assert.strictEqual(words[1].startChar, 5);
+    assert.strictEqual(words[1].endChar, 11);
+
+    assert.strictEqual(words[5].word, '2.0.');
+    assert.strictEqual(words[5].cleanWord, '2.0');
+    assert.strictEqual(sentence.substring(words[5].startChar, words[5].endChar), '2.0.');
+});
+
+

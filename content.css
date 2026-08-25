@@ -2,7 +2,29 @@
  * Narrador de Página - Estilos Injetados (Player Flutuante, Balão & Karaokê)
  */
 
-/* Destaque de Texto em Tempo Real (Efeito Karaokê) */
+/* Destaque de Texto em Tempo Real (Efeito Karaokê - Custom Highlight API & Fallback) */
+::highlight(narrador-sentence) {
+    background-color: #fef08a;
+    color: #0f172a;
+}
+
+::highlight(narrador-word) {
+    background-color: #0284c7;
+    color: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+    ::highlight(narrador-sentence) {
+        background-color: #1e3a8a;
+        color: #f8fafc;
+    }
+
+    ::highlight(narrador-word) {
+        background-color: #38bdf8;
+        color: #0f172a;
+    }
+}
+
 .narrador-highlight-container {
     background-color: #fef08a !important;
     color: #0f172a !important;
