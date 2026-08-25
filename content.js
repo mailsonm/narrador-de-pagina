@@ -379,30 +379,21 @@
         const effectiveRate = settings.rate || 1.0;
         let cumulativeMs = 0;
 
-        // Modelo acústico aprimorado: pesos por caracteres, acrônimos, números e pausas de pontuação
+        // Modelo acústico e silábico de alta precisão
         const weights = words.map(w => {
             const raw = w.word;
-            const clean = w.cleanWord;
-            let weight = Math.max(3, clean.length);
-
-            // Acrônimos em maiúsculas (ex: LLM, GLM, GPT, API) -> mais sílabas soletradas
-            if (/^[A-Z0-9]{2,}$/.test(clean)) {
-                weight += clean.length * 2.2;
-            }
-            // Números e decimais (ex: 3.8, 5.3, 0731, 2026) -> pronúncia com várias palavras
-            else if (/\d/.test(clean)) {
-                weight += 8;
-            }
+            const syllables = w.syllables || 1;
+            let weight = syllables * 3.8;
 
             // Pausas naturais de pontuação
-            if (/[,;:\-]/.test(raw)) weight += 5;
-            if (/[.!?]/.test(raw)) weight += 8;
+            if (/[,;:\-]/.test(raw)) weight += 4.5;
+            if (/[.!?]/.test(raw)) weight += 7.0;
 
-            return weight;
+            return Math.max(2.5, weight);
         });
 
         const totalWeight = weights.reduce((a, b) => a + b, 0);
-        const totalMs = totalDurationMs > 0 ? totalDurationMs : (totalWeight * 52) / effectiveRate;
+        const totalMs = totalDurationMs > 0 ? totalDurationMs : (totalWeight * 48) / effectiveRate;
 
         for (let i = 0; i < words.length; i++) {
             const duration = (weights[i] / totalWeight) * totalMs;
@@ -698,7 +689,7 @@
         if (!matchedWord) return;
         activeWordIndex = matchedIdx;
 
-        // 1. Destaque da palavra no DOM da página web
+        // 1. Destaque da palavra no DOM da página web e rolagem suave
         if (currentWordRanges && currentWordRanges[matchedIdx]) {
             const wr = currentWordRanges[matchedIdx];
             if (typeof CSS !== 'undefined' && CSS.highlights && typeof Highlight !== 'undefined') {
@@ -706,6 +697,7 @@
                     CSS.highlights.set('narrador-word', new Highlight(wr.range));
                 } catch (e) {}
             }
+            smoothScrollToActiveWord(wr.range);
         }
 
         // 2. Atualiza a prévia visual do Karaokê em tempo real no Player Flutuante
@@ -720,16 +712,79 @@
         }
     }
 
+    function smoothScrollToActiveWord(range) {
+        if (!range) return;
+        try {
+            const rect = range.getBoundingClientRect();
+            if (!rect || (rect.top === 0 && rect.bottom === 0)) return;
+
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+            const topComfortZone = viewportHeight * 0.20;
+            const bottomComfortZone = viewportHeight * 0.75;
+
+            // Rola suavemente apenas se a palavra estiver fora da faixa confortável de 20%-75%
+            if (rect.top < topComfortZone || rect.bottom > bottomComfortZone) {
+                const targetY = window.scrollY + rect.top - (viewportHeight * 0.35);
+                window.scrollTo({
+                    top: Math.max(0, targetY),
+                    behavior: 'smooth'
+                });
+            }
+        } catch (e) {}
+    }
+
     function smoothScrollToElement(el) {
         if (!el) return;
         const rect = el.getBoundingClientRect();
         const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
 
-        // Rola suavemente apenas se o elemento estiver fora ou muito próximo das bordas da tela
         if (rect.top < 100 || rect.bottom > (viewportHeight - 100)) {
             el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }
+
+    function seekToChunk(index) {
+        if (index >= 0 && index < chunks.length) {
+            stopKaraokeSync();
+            if (activeAudio) {
+                activeAudio.pause();
+                activeAudio = null;
+            }
+            if (synth) synth.cancel();
+            isPlaying = true;
+            isPaused = false;
+            showFloatingPlayer();
+            playChunk(index);
+        }
+    }
+
+    // Clique no texto do artigo para navegar/iniciar leitura (Click-to-Seek)
+    document.addEventListener('click', (e) => {
+        if (!isPlaying && (!playerEl || playerEl.classList.contains('narrador-player-hidden'))) return;
+        if (e.target.closest('#narrador-floating-player') ||
+            e.target.closest('#narrador-selection-bubble') ||
+            e.target.closest('a, button, input, select, textarea, [role="button"]')) {
+            return;
+        }
+
+        const sel = window.getSelection();
+        if (sel && sel.toString().trim().length > 0) return;
+
+        const targetEl = e.target.closest('h1, h2, h3, h4, h5, h6, p, li, blockquote, dt, dd');
+        if (!targetEl) return;
+
+        const clickedText = (targetEl.innerText || targetEl.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+        if (clickedText.length < 5) return;
+
+        for (let i = 0; i < chunks.length; i++) {
+            const chunkClean = chunks[i].replace(/\s+/g, ' ').trim().toLowerCase();
+            const snippet = chunkClean.substring(0, Math.min(25, chunkClean.length));
+            if (clickedText.includes(snippet) || (chunkClean.length > 8 && clickedText.includes(chunkClean))) {
+                seekToChunk(i);
+                break;
+            }
+        }
+    });
 
     function escapeHtml(str) {
         if (!str) return '';

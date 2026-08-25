@@ -147,4 +147,33 @@ test('7. Tokenização de Palavras com Offsets para Karaokê (getSentenceWords)'
     assert.strictEqual(sentence.substring(words[5].startChar, words[5].endChar), '2.0.');
 });
 
+test('8. Estimativa Prosódica e Pesos de Sílabas em getSentenceWords', (t) => {
+    const { getSentenceWords } = require('../lib/sentence-splitter.js');
+    const sentence = "O app Rails 8 de chat com LLM.";
+
+    const words = getSentenceWords(sentence);
+    const llmWord = words.find(w => w.cleanWord === 'LLM');
+    const railsWord = words.find(w => w.cleanWord === 'Rails');
+
+    assert.ok(llmWord, 'Deve encontrar a palavra LLM');
+    assert.ok(llmWord.syllables >= 5, 'Acrônimo LLM deve ter peso elevado para soletrar letras');
+    assert.ok(railsWord.syllables >= 1, 'Palavra regular deve ter contagem de sílabas');
+});
+
+test('9. Leitura e Segmentação Contínua de 3 Parágrafos do Artigo AkitaOnRails', (t) => {
+    const threeParagraphs = [
+        "Semana passada eu publiquei a rodada com Qwen 3.8, GLM 5.3, Gemini 3.7 e Grok 4.6 no meu benchmark v2: a prova em três fases que endurece um app Rails 8 de chat com LLM. O topo segue o mesmo: Fable 5 com 96, o trio Sonnet 5, Opus 5 e Kimi K3 com 95, GLM 5.3 sozinho com 94, e o pelotão dos 93 logo atrás.",
+        "E toda vez que eu publico uma dessas atualizações, sem exceção, aparece alguém nos comentários: “e o Deepseek?”",
+        "Confesso que eu não entendo esse foco cego no Deepseek. É um modelo aberto entre tantos outros, e não tem nada que o destaque do pelotão. No meu uso diário, eu continuo preferindo Kimi K3 ou GLM 5.3."
+    ].join(' ');
+
+    const chunks = splitTextIntoSentences(threeParagraphs);
+
+    assert.ok(chunks.length >= 6, 'Deve segmentar os 3 parágrafos em sentenças naturais');
+    assert.ok(chunks[0].includes('Qwen 3.8'), 'Preserva decimais no parágrafo 1');
+    assert.ok(chunks.some(c => c.includes('“e o Deepseek?”') || c.includes('Deepseek?')), 'Preserva aspas e perguntas no parágrafo 2');
+    assert.ok(chunks.some(c => c.includes('Confesso que eu não entendo')), 'Preserva início do parágrafo 3');
+});
+
+
 
